@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>Add a new project</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #555;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      input:focus,
+      textarea:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+      textarea {
+        height: 100px;
+        resize: vertical;
+      }
+      button {
+        width: 100%;
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      .logout-btn {
+        position: absolute;
+        top: 60px;
+        right: 20px;
+
+        width: auto;
+        background: #dc3545;
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+      .redirect-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: auto;
+        background: #0056b3;
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+      .error {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: -15px;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <button class="redirect-btn" onclick="manageProjects()">Manage Projects</button>
+
+    <div class="container">
+      <h1>📝 Add a New Project</h1>
+
+      <div id="projectForm">
+        <label for="projectname">Project Name: *</label>
+        <input
+          type="text"
+          id="projectname"
+          name="projectname"
+          required
+          placeholder="Enter project name"
+        />
+        <div id="nameError" class="error" style="display: none"></div>
+
+        <label for="description">Description: *</label>
+        <textarea
+          id="description"
+          name="description"
+          required
+          placeholder="Describe your project"
+        ></textarea>
+        <div id="descError" class="error" style="display: none"></div>
+
+        <label for="link">Project Link: *</label>
+        <input
+          type="url"
+          id="link"
+          name="link"
+          required
+          placeholder="https://example.com"
+        />
+        <div id="linkError" class="error" style="display: none"></div>
+
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" accept="image/*" />
+        <div id="imageError" class="error" style="display: none"></div>
+
+        <select id="projectType" name="projectType">
+          <option value="personal">Personal Projects</option>
+          <option value="academy">Academy Projects</option>
+        </select>
+
+        <label for="technology">Select First Technology:</label>
+        <select id="technology" name="technology">
+          <option value="">None Tech</option>
+          <option value="typescriptIcon">TypeScript</option>
+          <option value="typescriptIcondark">TypeScript - (Dark)</option>
+          <option value="javascriptIcon">JavaScript</option>
+          <option value="javascriptIcondark">JavaScript - (Dark)</option>
+          <option value="primengIcon">PrimeNG</option>
+          <option value="csharpIcon">C#</option>
+          <option value="csharpIcondark">C# - (Dark)</option>
+        </select>
+
+        <label for="secondTechnology">Select Second Technology:</label>
+        <select id="secondTechnology" name="secondTechnology">
+          <option value="">None Tech</option>
+          <option value="angularIcon">Angular</option>
+          <option value="angularIcondark">Angular - (Dark)</option>
+          <option value="angularMaterialIcon">Angular Material</option>
+          <option value="angularMaterialIcondark">
+            Angular Material - (Dark)
+          </option>
+          <option value="reactIcon">React</option>
+          <option value="vueIcon">Vue.js</option>
+          <option value="vueIcondark">Vue.js - (Dark)</option>
+          <option value="nextjsIcon">Next.js</option>
+          <option value="nextjsIcondark">Next.js - (Dark)</option>
+        </select>
+
+        <label for="thirdTechnology">Select Third Technology:</label>
+        <select id="thirdTechnology" name="thirdTechnology">
+          <option value="">None Tech</option>
+          <option value="mongodbIcon">MongoDB</option>
+          <option value="mongodbIcondark">MongoDB - (Dark)</option>
+          <option value="postgresqlIcon">PostgreSQL</option>
+          <option value="postgresqlIcondark">PostgreSQL - (Dark)</option>
+          <option value="mysqlIcon">MySQL</option>
+          <option value="mysqlIcondark">MySQL - (Dark)</option>
+        </select>
+
+        <button type="button" onclick="addNewProject()" id="submitBtn">
+          Add Project
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Verificar se o usuário está logado
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Você precisa fazer login primeiro!");
+        window.location.href = "/login";
+      }
+
+      function logout() {
+        localStorage.removeItem("token");
+        alert("Logout realizado com sucesso!");
+        window.location.href = "/login";
+      }
+
+      function manageProjects() {
+        window.location.href = "/delproject";
+      }
+
+      function clearErrors() {
+        document.getElementById("nameError").style.display = "none";
+        document.getElementById("descError").style.display = "none";
+        document.getElementById("linkError").style.display = "none";
+        document.getElementById("imageError").style.display = "none";
+      }
+
+      function showError(fieldId, message) {
+        const errorElement = document.getElementById(fieldId + "Error");
+        errorElement.textContent = message;
+        errorElement.style.display = "block";
+      }
+
+      function validateForm() {
+        clearErrors();
+        let isValid = true;
+
+        const projectName = document.getElementById("projectname").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const link = document.getElementById("link").value.trim();
+        const imageInput = document.getElementById("image");
+
+        if (!projectName) {
+          showError("name", "Project name is required");
+          isValid = false;
+        }
+
+        if (!description) {
+          showError("desc", "Description is required");
+          isValid = false;
+        }
+
+        if (!link) {
+          showError("link", "Project link is required");
+          isValid = false;
+        } else {
+          try {
+            new URL(link);
+          } catch (e) {
+            showError("link", "Please enter a valid URL");
+            isValid = false;
+          }
+        }
+
+        // Validação da imagem
+        if (imageInput.files.length === 0) {
+          showError("image", "An image is required");
+          isValid = false;
+        }
+
+        return isValid;
+      }
+
+      function addNewProject() {
+        if (!validateForm()) {
+          return;
+        }
+
+        const submitBtn = document.getElementById("submitBtn");
+        const projectName = document.getElementById("projectname").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const link = document.getElementById("link").value.trim();
+        const imageInput = document.getElementById("image");
+        const imageFile = imageInput.files[0];
+        const technology = document.getElementById("technology").value.trim();
+        const secondTechnology = document
+          .getElementById("secondTechnology")
+          .value.trim();
+        const thirdTechnology = document
+          .getElementById("thirdTechnology")
+          .value.trim();
+        const projectType = document.getElementById("projectType").value;
+
+        // Desabilitar botão durante o envio
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Adicionando...";
+
+        const formData = new FormData();
+        formData.append("projectname", projectName);
+        formData.append("desc", description);
+        formData.append("url", link);
+        formData.append("technology", technology);
+        formData.append("secondTechnology", secondTechnology);
+        formData.append("thirdTechnology", thirdTechnology);
+        formData.append("projectType", projectType);
+
+        if (imageFile) {
+          formData.append("image", imageFile);
+        }
+
+        console.log("Sending data:", {
+          projectname: projectName,
+          desc: description,
+          url: link,
+          hasImage: !!imageFile,
+          technology: technology,
+          secondTechnology: secondTechnology,
+          thirdTechnology: thirdTechnology,
+          projectType: projectType,
+        });
+
+        fetch("http://localhost:5544/api/projects/posting", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        })
+          .then((response) => {
+            console.log("Response status:", response.status);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Response data:", data);
+            if (data.error) {
+              alert(`Error: ${data.error}`);
+            } else {
+              alert("Project added successfully! 🎉");
+              // Limpar formulário
+              document.getElementById("projectname").value = "";
+              document.getElementById("description").value = "";
+              document.getElementById("link").value = "";
+              document.getElementById("image").value = "";
+              document.getElementById("technology").value = "";
+              document.getElementById("secondTechnology").value = "";
+              document.getElementById("thirdTechnology").value = "";
+              document.getElementById("projectType").value = "personal";
+              clearErrors();
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert(
+              "An error occurred while adding the project: " + error.message
+            );
+          })
+          .finally(() => {
+            // Reabilitar botão
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Add Project";
+          });
+      }
+      // Permitir envio com Enter (opcional)
+      document.addEventListener("keypress", function (e) {
+        if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+          addNewProject();
+        }
+      });
+    </script>
+  </body>
+</html>

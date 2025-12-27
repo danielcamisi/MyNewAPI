@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projetos</title>
+   <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+}
+
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.project-card {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+}
+
+.project-image {
+    max-width: 350px;
+    height: 350px;
+}
+
+img{
+    max-width: 200px;
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+}
+
+button {
+    margin-right: 10px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+ .redirect-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: auto;
+        background: #0056b3;
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+
+button:hover {
+    background-color: #0056b3;
+}
+   </style>
+ 
+  </head>
+  <body>
+    <div class="container">
+        <button class="redirect-btn" onclick="mainPage()">Return</button>
+      <h1>Lista de Projetos</h1>
+      <div class="projects-list">
+        <!-- Aqui será preenchido com os projetos através do JavaScript -->
+        <div id="projectsContainer"></div>
+      </div>
+    </div>
+
+     <script>
+        // URL base da API
+        const API_BASE_URL = "http://localhost:5544/api";
+        
+
+        function mainPage() {
+            window.location.href = "/index.html";
+        }
+        // Função para buscar e exibir projetos
+        async function fetchProjects() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const projects = await response.json();
+                const projectsContainer = document.getElementById("projectsContainer");
+                
+                if (!projects || projects.length === 0) {
+                    projectsContainer.innerHTML = `
+                        <div class="no-projects">
+                            <p>Nenhum projeto encontrado.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                projectsContainer.innerHTML = "";
+                
+                projects.forEach((project) => {
+                    const projectDiv = document.createElement("div");
+                    projectDiv.classList.add("project-card");
+                    
+                    // Converter nome do projeto para URL segura
+                    const encodedProjectName = encodeURIComponent(project.projectname);
+                    
+                    // Verificar se há imagens de tecnologia
+                    const techImages = [];
+                    if (project.technology) {
+                        techImages.push(`<img src="${project.technology}" alt="Tecnologia" title="${project.technology}" />`);
+                    }
+                    if (project.secondTechnology) {
+                        techImages.push(`<img src="${project.secondTechnology}" alt="Tecnologia Secundária" title="${project.secondTechnology}" />`);
+                    }
+                    if (project.thirdTechnology) {
+                        techImages.push(`<img src="${project.thirdTechnology}" alt="Terceira Tecnologia" title="${project.thirdTechnology}" />`);
+                    }
+                    
+                    projectDiv.innerHTML = `
+                        <div class="project-type ${project.projectType}">
+                            ${project.projectType === 'academy' ? 'Acadêmico' : 'Pessoal'}
+                        </div>
+                        <h3>${project.projectname}</h3>
+                        <p><strong>Descrição:</strong> ${project.desc}</p>
+                        ${project.img ? `<img src="${project.img}" alt="${project.projectname}" class="project-image" />` : ''}
+                        ${techImages.length > 0 ? `<div class="tech-images">${techImages.join('')}</div>` : ''}
+                        <div class="project-actions">
+                            <button class="btn-edit" onclick="editProject('${encodedProjectName}')">Editar</button>
+                            <button class="btn-delete" onclick="deleteProject('${encodedProjectName}')">Deletar</button>
+                        </div>
+                    `;
+                    
+                    projectsContainer.appendChild(projectDiv);
+                });
+                
+            } catch (error) {
+                console.error("Erro ao buscar projetos:", error);
+                const projectsContainer = document.getElementById("projectsContainer");
+                projectsContainer.innerHTML = `
+                    <div class="no-projects">
+                        <p>Erro ao carregar projetos: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Função para deletar projeto pelo nome
+        async function deleteProject(projectname) {
+            const confirmDelete = confirm(
+                `Tem certeza que deseja deletar o projeto "${decodeURIComponent(projectname)}"?\n\nEsta ação não pode ser desfeita.`
+            );
+            
+            if (!confirmDelete) return;
+            
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/projects/by-name/${projectname}`,
+                    { 
+                        method: "DELETE",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(result.message || "Projeto deletado com sucesso!");
+                    fetchProjects(); // Recarrega a lista
+                } else {
+                    alert(`Erro: ${result.message || "Falha ao deletar projeto"}`);
+                }
+            } catch (error) {
+                console.error("Erro ao deletar projeto:", error);
+                alert("Erro de conexão ao tentar deletar o projeto.");
+            }
+        }
+        
+        // Função para editar projeto (exemplo)
+        function editProject(projectname) {
+            // Redirecionar para página de edição ou abrir modal
+            alert(`Editando projeto: ${decodeURIComponent(projectname)}`);
+            // Exemplo: window.location.href = `edit-project.html?name=${projectname}`;
+        }
+        
+        // Carregar projetos quando a página carregar
+        document.addEventListener('DOMContentLoaded', fetchProjects);
+        
+        // Adicionar botão para recarregar projetos (opcional)
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            const reloadBtn = document.createElement('button');
+            reloadBtn.textContent = 'Recarregar Projetos';
+            reloadBtn.style.cssText = `
+                display: block;
+                margin: 20px auto;
+                padding: 10px 20px;
+                background-color: #17a2b8;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            `;
+            reloadBtn.onclick = fetchProjects;
+            container.insertBefore(reloadBtn, container.firstChild.nextSibling);
+        });
+    </script>
+  </body>
+</html>
